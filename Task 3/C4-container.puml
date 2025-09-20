@@ -1,0 +1,32 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Context.puml
+
+
+Person(user, "Собственник / Жилец", "Управляет доступом через мобильное приложение PropDevelopment.")
+
+System(prop, "Платформа PropDevelopment", "Мобильное приложение собственника + бэкенд; управление доступом (Smart Access).")
+
+System_Ext(partner, "Партнёрская платформа Smart Access", "Облачные сервисы: биометрия лица, LPR, оркестрация устройств.")
+System_Ext(intercom, "Интеллектуальный домофон (устройство)", "Видео/аудио, распознавание лиц, управление замком.")
+System_Ext(barrier, "Интеллектуальный шлагбаум (устройство)", "Камера распознавания номеров (LPR), управление проездом.")
+System_Ext(pay, "Платёжная система", "Оплата услуг (контекстно, без прямой связи со Smart Access).")
+System_Ext(gov, "Госрегистрационные органы", "Контекстные интеграции сделок (вне Smart Access).")
+
+Rel(user, prop, "Команды: открыть дверь/шлагбаум, управление гостями и авто, включение биометрии", "Моб. приложение (OIDC + PKCE)")
+
+Rel(prop, partner, "API-команды, управление списками/политиками, обмен токена", "mTLS + OAuth 2.1 / RFC 8693 Token Exchange")
+Rel(partner, prop, "События: AccessGranted/Denied, AntiSpoof, DeviceHealth", "Подписанные вебхуки (mTLS + JWS, nonce, idempotency)")
+
+Rel(partner, intercom, "Управление/телеметрия, видеострим", "Защищённый канал")
+Rel(partner, barrier, "Управление, распознавание номерных знаков (LPR)", "Защищённый канал")
+
+Rel(user, partner, "Просмотр видео/вызов по временному URL/токену", "HTTPS; сессионный токен, выданный через Token Exchange")
+
+Rel_L(prop, pay, "Платёжные операции (ЖКУ и др.)", "TLS")
+Rel_L(prop, gov, "Интеграции по сделкам", "СМЭВ/SOAP (существующее)")
+
+UpdateRelStyle(user, partner, $textColor="gray", $lineColor="gray")
+UpdateRelStyle(prop, pay, $textColor="gray", $lineColor="gray")
+UpdateRelStyle(prop, gov, $textColor="gray", $lineColor="gray")
+
+@enduml

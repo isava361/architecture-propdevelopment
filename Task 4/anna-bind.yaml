@@ -1,0 +1,14 @@
+# clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sales-developer
+  namespace: sales
+subjects:
+- kind: User
+  name: anna-dev
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: sales-developer
+  apiGroup: rbac.authorization.k8s.io

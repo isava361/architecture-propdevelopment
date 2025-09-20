@@ -1,0 +1,94 @@
+# Глобальный "default deny" во всём namespace для ingress+egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: finance
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# 2.2) Разрешаем egress на DNS (CoreDNS в kube-system), иначе имена сервисов не резолвятся
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: finance
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - { protocol: UDP, port: 53 }
+    - { protocol: TCP, port: 53 }
+---
+# 2.3) Двустороннее разрешение трафика между front-end и back-end-api (порт 80)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-non-admin-ui-to-api
+  namespace: finance
+spec:
+  podSelector:
+    matchExpressions:
+    - key: role
+      operator: In
+      values: ["front-end", "back-end-api"]
+  policyTypes: ["Ingress","Egress"]
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: role
+          operator: In
+          values: ["front-end", "back-end-api"]
+    ports:
+    - { protocol: TCP, port: 80 }
+  egress:
+  - to:
+    - podSelector:
+        matchExpressions:
+        - key: role
+          operator: In
+          values: ["front-end", "back-end-api"]
+    ports:
+    - { protocol: TCP, port: 80 }
+---
+# 2.4) Двустороннее разрешение трафика между admin-front-end и admin-back-end-api (порт 80)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-admin-ui-to-admin-api
+  namespace: finance
+spec:
+  podSelector:
+    matchExpressions:
+    - key: role
+      operator: In
+      values: ["admin-front-end", "admin-back-end-api"]
+  policyTypes: ["Ingress","Egress"]
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: role
+          operator: In
+          values: ["admin-front-end", "admin-back-end-api"]
+    ports:
+    - { protocol: TCP, port: 80 }
+  egress:
+  - to:
+    - podSelector:
+        matchExpressions:
+        - key: role
+          operator: In
+          values: ["admin-front-end", "admin-back-end-api"]
+    ports:
+    - { protocol: TCP, port: 80 }
