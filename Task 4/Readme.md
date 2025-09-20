@@ -1,7 +1,7 @@
 1. Запустить minikube
 
 ```bash
-minikube start
+minikube start --cni=calico
 ```
 
 2. Создадим namespaces
