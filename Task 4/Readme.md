@@ -1,6 +1,8 @@
 1. Запустить minikube
 
+```bash
 minikube start
+```
 
 2. Создадим namespaces
 
